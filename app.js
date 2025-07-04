@@ -27,8 +27,9 @@ const checkHealth = async (server, ip) => {
       timeout: 3000,
     });
 
-    console.log(`✅ ${server} is online`);
-    return res.status === 200;
+    console.log(`✅ ${server} is online and`, (res.data.isMongoPrimary == true ? 'is' : 'is not'), `primary`);
+    
+    return res.status === 200 && res.data.isMongoPrimary == true;
   } catch (e) {
     if (e.response) {
       console.error('❌', server, e.response.status, e.response.data);
