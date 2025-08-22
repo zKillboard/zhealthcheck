@@ -1,10 +1,13 @@
 {
-  "name": "zhealthcheck",
-  "scripts": {
-    "start": "node app.js"
-  },
-  "dependencies": {
-    "axios": "^1.6.7",
-    "dotenv": "^16.4.0"
-  }
+	"name": "zhealthcheck",
+	"scripts": {
+		"start": "node app.js"
+	},
+	"dependencies": {
+		"axios": "^1.6.7",
+		"dotenv": "^16.4.0"
+	},
+	"engines": {
+		"node": "18.x"
+	}
 }
