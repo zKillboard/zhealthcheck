@@ -30,6 +30,10 @@ Either will work:
 - `node app.js`
 - `npm start`
 
+### IMPORTANT
+
+node v18 required! versions 19+ seem to have issues with DNS override lookups that have not been addressed yet...
+
 ## example
 
 <img width="1146" height="346" alt="image" src="https://github.com/user-attachments/assets/ab6572fc-d059-4988-8258-88a0315dc247" />
