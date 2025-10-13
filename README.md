@@ -32,4 +32,5 @@ Either will work:
 
 ## example
 
-![image](https://github.com/user-attachments/assets/ed0ffa4b-3643-4995-a5e7-f6fb28e50130)
+<img width="1146" height="346" alt="image" src="https://github.com/user-attachments/assets/ab6572fc-d059-4988-8258-88a0315dc247" />
+
