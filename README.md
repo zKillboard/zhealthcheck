@@ -6,9 +6,9 @@ Used to check multiple IP addresses using a common domain name and dynamically a
 
 - **Dynamic IP Assignment**: Automatically assigns IPs of healthy servers to the domain
 - **Load Balancing**: All healthy servers are assigned simultaneously 
-- **Grace Period**: 5-minute grace period before unassigning unhealthy servers
+- **Grace Period**: 30 second grace period before unassigning unhealthy servers
 - **Minimum Assignment**: Always keeps at least 1 IP assigned to prevent complete outage
-- **Flap Prevention**: Prevents rapid assignment/unassignment cycles
+~~- **Flap Prevention**: Prevents rapid assignment/unassignment cycles~~ (not true with a 30 second grace period)
 
 ## env variables
 
