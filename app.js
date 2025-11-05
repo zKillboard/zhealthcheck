@@ -165,13 +165,20 @@ const manageDNSRecords = async () => {
 		serverHealth[server.ip].isAssigned = currentIPs.has(server.ip);
 	});
 	
-	console.log(`🔍 Currently assigned: ${Array.from(currentIPs).map(ip => serverMap[ip]).join(', ')}`);
+	// Sort server names for consistent display
+	const assignedServerNames = Array.from(currentIPs)
+		.map(ip => serverMap[ip])
+		.filter(name => name) // Remove any undefined names
+		.sort();
+	
+	console.log(`🔍 Currently assigned: ${assignedServerNames.join(', ')}`);
 	
 	const assignedCount = currentIPs.size;
 	const actions = [];
 	
-	// Determine actions needed
-	for (const server of servers) {
+	// Determine actions needed (process servers in sorted order)
+	const sortedServers = [...servers].sort((a, b) => a.name.localeCompare(b.name));
+	for (const server of sortedServers) {
 		const health = serverHealth[server.ip];
 		
 		if (shouldAssignIP(server)) {
@@ -200,8 +207,15 @@ const manageDNSRecords = async () => {
 		}
 	}
 	
+	// Sort actions to add records first, then remove (ensures at least one A record exists)
+	const sortedActions = actions.sort((a, b) => {
+		if (a.type === 'assign' && b.type === 'unassign') return -1;
+		if (a.type === 'unassign' && b.type === 'assign') return 1;
+		return 0;
+	});
+
 	// Execute actions
-	for (const action of actions) {
+	for (const action of sortedActions) {
 		try {
 			if (action.type === 'assign') {
 				await createDNSRecord(action.server.ip, action.server.name);
@@ -224,9 +238,10 @@ async function doCheckups() {
 		console.log(`🩺 Health Check - ${new Date().toISOString()}`);
 		console.log('='.repeat(60));
 
-		// Check health of all servers
+		// Check health of all servers (sorted by name for consistent ordering)
+		const sortedServers = [...servers].sort((a, b) => a.name.localeCompare(b.name));
 		const results = await Promise.all(
-			servers.map(async (s) => ({
+			sortedServers.map(async (s) => ({
 				...s,
 				healthResult: await checkHealth(s.name, s.ip),
 			}))
