@@ -79,13 +79,35 @@ const updateServerHealth = (server, healthResult) => {
 	if (isHealthy && !health.isHealthy) {
 		health.lastHealthyTime = now;
 		health.isHealthy = true;
-		console.log(`📈 ${server.name} became healthy`);
+		notify(server.name, `📈 ${server.name} became healthy`);
 	} else if (!isHealthy && health.isHealthy) {
 		health.lastUnhealthyTime = now;
 		health.isHealthy = false;
-		console.log(`📉 ${server.name} became unhealthy`);
+		notify(server.name, `📉 ${server.name} became unhealthy`);
 	}
 };
+
+const serverStatusMap = {};
+const notify = async (serverName, message, wait = false) => {
+	console.log(message);
+	try {
+		if (serverStatusMap[serverName] && serverStatusMap[serverName] != message && process.env.WEBHOOK_URL) {
+			const url = process.env.WEBHOOK_URL + (wait ? "?wait=true" : "");
+			await fetch(url, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					content: message,
+					avatar_url: 'https://cdn.discordapp.com/icons/849992399639281694/4cf3d7dba477c789883b292f46bfc016.png',
+					username: 'zKillBot'
+				})
+			});
+		}
+	} catch (e) {
+		console.error("❌ Notification failed:", e.message);
+	}
+	serverStatusMap[serverName] = message;
+}
 
 const shouldAssignIP = (server) => {
 	const health = serverHealth[server.ip];
