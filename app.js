@@ -240,11 +240,11 @@ const manageDNSRecords = async () => {
 			if (action.type === 'assign') {
 				await createDNSRecord(action.server.ip, action.server.name);
 				serverHealth[action.server.ip].isAssigned = true;
-				notify(action.server.name, `📈 ${action.server.name} is healthy`);
+				notify(action.server.name, `📈 ${action.server.name} added to DNS rotation.`);
 			} else {
 				await deleteDNSRecord(action.recordId, action.server.ip, action.server.name);
 				serverHealth[action.server.ip].isAssigned = false;
-				notify(action.server.name, `📉 ${action.server.name} is unhealthy`);
+				notify(action.server.name, `📉 ${action.server.name} removed from DNS rotation.`);
 			}
 		} catch (error) {
 			console.error(`❌ Failed to ${action.type} ${action.server.name}: ${error.message}`);
