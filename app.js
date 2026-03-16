@@ -79,11 +79,9 @@ const updateServerHealth = (server, healthResult) => {
 	if (isHealthy && !health.isHealthy) {
 		health.lastHealthyTime = now;
 		health.isHealthy = true;
-		notify(server.name, `📈 ${server.name} became healthy`);
 	} else if (!isHealthy && health.isHealthy) {
 		health.lastUnhealthyTime = now;
 		health.isHealthy = false;
-		notify(server.name, `📉 ${server.name} became unhealthy`);
 	}
 };
 
@@ -242,12 +240,15 @@ const manageDNSRecords = async () => {
 			if (action.type === 'assign') {
 				await createDNSRecord(action.server.ip, action.server.name);
 				serverHealth[action.server.ip].isAssigned = true;
+				notify(action.server.name, `📈 ${action.server.name} is healthy`);
 			} else {
 				await deleteDNSRecord(action.recordId, action.server.ip, action.server.name);
 				serverHealth[action.server.ip].isAssigned = false;
+				notify(action.server.name, `📉 ${action.server.name} is unhealthy`);
 			}
 		} catch (error) {
 			console.error(`❌ Failed to ${action.type} ${action.server.name}: ${error.message}`);
+			notify(action.server.name, `💥 Failed to ${action.type} ${action.server.name}: ${error.message}`);
 		}
 	}
 	
