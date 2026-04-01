@@ -2,6 +2,8 @@ const axios = require('axios');
 const https = require('https');
 const { validateAndParseConfig } = require('./lib/config');
 const CloudflareAPI = require('./lib/cloudflare');
+const { getSystemErrorMap } = require('util');
+const { hostname } = require('os');
 
 // Load and validate configuration
 let config, servers, serverMap;
@@ -33,6 +35,8 @@ servers.forEach(s => {
 	};
 });
 
+const healthtracker = {};
+
 const checkHealth = async (server, ip) => {
 	const agent = new https.Agent({
 		rejectUnauthorized: false,
@@ -40,27 +44,34 @@ const checkHealth = async (server, ip) => {
 		lookup: (hostname, options, callback) => callback(null, ip, 4),
 	});
 
+	let isHealthy = false;
+	let isPrimary = false;
+	let bad_head_count = healthtracker[server] || 3; // Start with 3 to treat unknown servers as unhealthy until proven otherwise
+
 	try {
 		const res = await axios.get(config.health.healthCheckUrl, {
 			httpsAgent: agent,
 			headers: {
 				Host: config.health.spoofHost,
-				'User-Agent': 'curl/8.0.1',
+				'User-Agent': 'zkill healthcheck agent',
 				Accept: '*/*',
 			},
 			timeout: 3000,
 		});
 
-		const isHealthy = res.status === 200;
-		const isPrimary = res.data?.isMongoPrimary === true;
-		
-		console.log(`${isHealthy ? '✅' : '❌'} ${server} is ${isHealthy ? 'online' : 'offline'}${isPrimary ? ' (PRIMARY - excluded from rotation)' : ''}`);
-		
-		return { isHealthy, isPrimary };
+		bad_head_count = res.status === 200 ? 0 : bad_head_count + 1;
+		isPrimary = res.data?.isMongoPrimary === true;
+
 	} catch (e) {
-		console.error('❌', server, e.response?.status || 'Connection failed');
-		return { isHealthy: false, isPrimary: false };
+		isHealthy = false;
+		isPrimary = false;
+		bad_head_count++;
 	}
+
+	healthtracker[server] = bad_head_count;
+
+	isHealthy = bad_head_count < 3;
+	return { isHealthy, isPrimary };
 };
 
 // DNS management functions now use the CloudflareAPI class
@@ -271,8 +282,6 @@ async function doCheckups() {
 				healthResult: await checkHealth(s.name, s.ip),
 			}))
 		);
-
-		console.log();
 
 		// Update server health states
 		for (const result of results) {
