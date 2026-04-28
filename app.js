@@ -303,6 +303,7 @@ async function doCheckups() {
 		console.log(`📊 Status: ${healthyCount}/${servers.length} healthy, ${primaryCount} primary, ${assignedCount} IP(s) assigned`);
 		
 		if (healthyCount === 0) {
+			notify("ALL SERVERS", "❌ All servers are down!", true);
 			console.error("❌ All servers are down!");
 		}
 
