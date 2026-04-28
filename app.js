@@ -90,11 +90,17 @@ const updateServerHealth = (server, healthResult) => {
 	if (isHealthy && !health.isHealthy) {
 		health.lastHealthyTime = now;
 		health.isHealthy = true;
-		notify(server.name, `✅ ${server.name} has passed health check.`);
+		if ((health.countUnhealthy || 0) >= 2) {
+			notify(server.name, `✅ ${server.name} has passed health check.`);
+		}
+		health.countUnhealthy = 0;
 	} else if (!isHealthy && health.isHealthy) {
 		health.lastUnhealthyTime = now;
 		health.isHealthy = false;
-		notify(server.name, `❌ ${server.name} has failed health check.`);
+		health.countUnhealthy = (health.countUnhealthy || 0) + 1;
+		if ((health.countUnhealthy || 0) >= 2) {
+			notify(server.name, `❌ ${server.name} has failed health check.`);
+		}
 	}
 };
 
